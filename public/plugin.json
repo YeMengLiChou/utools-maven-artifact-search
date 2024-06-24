@@ -1,0 +1,14 @@
+{
+    "main": "index.html",
+    "logo": "icon.png",
+    "features": [
+        {
+            "code": "main",
+            "explain": "依赖查找",
+            "cmds": ["查找依赖"]
+        }
+    ],
+    "development": {
+        "main": "http://localhost:3000/"
+    }
+}
