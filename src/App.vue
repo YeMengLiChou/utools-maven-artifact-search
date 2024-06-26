@@ -1,70 +1,43 @@
-<script setup lang="ts">
-</script>
+<script setup lang="ts"></script>
 
 <template>
-    <RouterView />
+    <el-container class="container">
+        <el-header>
+            <el-menu mode="horizontal" default-active="1">
+                <el-menu-item index="1">
+                    <el-text size="large"> 搜索依赖</el-text>
+                </el-menu-item>
+                <el-menu-item index="2">
+                    <el-text size="large"> 收藏</el-text>
+                </el-menu-item>
+            </el-menu>
+        </el-header>
+        <el-main>
+            <RouterView v-slot="{ Component }">
+                <keep-alive>
+                    <component :is="Component" />
+                </keep-alive>
+            </RouterView>
+        </el-main>
+    </el-container>
 </template>
 
-<style scoped>
-header {
-    line-height: 1.5;
-    max-height: 100vh;
-}
-
-.logo {
-    display: block;
-    margin: 0 auto 2rem;
-}
-
-nav {
+<style scoped lang="css">
+.container {
     width: 100%;
-    font-size: 12px;
-    text-align: center;
-    margin-top: 2rem;
-}
+    height: 100%;
 
-nav a.router-link-exact-active {
-    color: var(--color-text);
-}
-
-nav a.router-link-exact-active:hover {
-    background-color: transparent;
-}
-
-nav a {
-    display: inline-block;
-    padding: 0 1rem;
-    border-left: 1px solid var(--color-border);
-}
-
-nav a:first-of-type {
-    border: 0;
-}
-
-@media (min-width: 1024px) {
-    header {
+    .el-header {
         display: flex;
-        place-items: center;
-        padding-right: calc(var(--section-gap) / 2);
+        width: 100%;
+
+        .el-menu {
+            margin: 0 auto;
+        }
     }
 
-    .logo {
-        margin: 0 2rem 0 0;
-    }
-
-    header .wrapper {
-        display: flex;
-        place-items: flex-start;
-        flex-wrap: wrap;
-    }
-
-    nav {
-        text-align: left;
-        margin-left: -1rem;
-        font-size: 1rem;
-
-        padding: 1rem 0;
-        margin-top: 1rem;
+    :deep(.el-main) {
+        padding: 0 !important;
     }
 }
 </style>

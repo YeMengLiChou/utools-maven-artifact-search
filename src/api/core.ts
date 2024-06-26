@@ -1,8 +1,11 @@
 // import 'utools-api-types';
-import { parseMavenArtifactWebContent, parseMavenSearchWebContent } from '@/api/parse'
+import {
+    parseMavenArtifactUsageWebContent,
+    parseMavenArtifactWebContent,
+    parseMavenSearchWebContent,
+} from '@/api/parse'
 import axios, { type AxiosInstance } from 'axios'
-import type { ArtifactInfo, SearchResult } from '@/api/type'
-
+import type { ArtifactInfo, ArtifactUsage, SearchResult } from '@/api/type'
 
 /**
  * 首次访问 https://mvnrepository.com 需要带上普通浏览器中的请求头；
@@ -16,14 +19,15 @@ axios.defaults.withCredentials = true
 axios.defaults.headers.common['Accept'] = '*/*'
 axios.defaults.headers.common['Content-Encoding'] = 'gzip, deflate, br, zstd'
 
-
 const Axios = axios.create({
     baseURL: '',
     timeout: 50000,
 })
 
-
-export function fetchMavenSearchWebSite(searchValue: string, pageNo: number = 1): Promise<SearchResult> {
+export function fetchMavenSearchWebSite(
+    searchValue: string,
+    pageNo: number = 1,
+): Promise<SearchResult> {
     return new Promise((resolve, reject) => {
         Axios.get('/maven/search', {
             params: {
@@ -31,30 +35,46 @@ export function fetchMavenSearchWebSite(searchValue: string, pageNo: number = 1)
                 p: pageNo, // 页码
             },
         })
-            .then(res => {
+            .then((res) => {
                 if (res.status == 200) {
                     resolve(parseMavenSearchWebContent(res.data))
                 }
             })
-            .catch(err => {
+            .catch((err) => {
                 reject(err)
             })
     })
 }
 
-
 /**
  * 查找指定名称的依赖信息
  */
-export function fetchMavenArtifactInfo(groupId: string, artifactName: string): Promise<ArtifactInfo> {
+export function fetchMavenArtifactInfo(
+    groupId: string,
+    artifactName: string,
+): Promise<ArtifactInfo> {
     return new Promise((resolve, reject) => {
         Axios.get(`/maven/artifact/${groupId}/${artifactName}`, {})
-            .then(res => {
+            .then((res) => {
                 if (res.status == 200) {
                     resolve(parseMavenArtifactWebContent(res.data))
                 }
             })
-            .catch(err => {
+            .catch((err) => {
+                reject(err)
+            })
+    })
+}
+
+export function fetchMavenArtifactUsage(groupId: string, artifactName: string, version: string): Promise<ArtifactUsage> {
+    return new Promise((resolve, reject) => {
+        Axios.get(`/maven/artifact/${groupId}/${artifactName}/${version}`, {})
+            .then((res) => {
+                if (res.status == 200) {
+                    resolve(parseMavenArtifactUsageWebContent(res.data))
+                }
+            })
+            .catch((err) => {
                 reject(err)
             })
     })

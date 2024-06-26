@@ -116,13 +116,17 @@ export function parseMavenArtifactWebContent(html: string): ArtifactInfo {
         }
     })
 
-    const versionRows = doc.querySelectorAll('#snippets > div > div > div > table > tr')
+    const versionRows = doc.querySelectorAll('#snippets > div > div > div > table > tbody > tr')
     const versionsInfo: Array<ArtifactVersion> = []
     versionRows.forEach((row) => {
-        // 第二个td是版本
-        const version = row.querySelector('td:nth-of-type(2)')!.textContent!
-        const repository = row.querySelector('td:nth-of-type(4)')!.textContent!
-        const date = row.querySelector('td:nth-of-type(6)')!.textContent!
+        // x.x.x 列, 需要判断是否存在，进行偏移
+        const offset = row.querySelector('td:nth-of-type(1) > div') ? 1 : 0
+        // 版本
+        const version = row.querySelector(`td:nth-of-type(${1 + offset}) > a.vbtn`)!.textContent!
+        // 所属仓库
+        const repository = row.querySelector(`td:nth-of-type(${3 + offset}) > a.b.lic`)!.textContent!
+        // 发布时间
+        const date = row.querySelector('td.date')!.textContent!
         versionsInfo.push({
             version: version, repository: repository, releaseDate: date,
         })

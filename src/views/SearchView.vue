@@ -1,50 +1,67 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { Search } from '@element-plus/icons-vue'
-import { ElNotification } from 'element-plus'
+import { ElMessage, ElNotification } from 'element-plus'
 import { fetchMavenSearchWebSite } from '@/api/core'
 import MavenArtifactItem from '@/components/MavenArtifactItem.vue'
 import type { SearchResult } from '@/api/type'
 import { useRouter } from 'vue-router'
+import _ from 'lodash'
 
 const router = useRouter()
-const searchValue = ref('')
-
 const loading = ref(false)
 
+// 搜索栏的值（可变）
+const searchValue = ref('')
+// 已经搜索的值，不可变
+const finalSearchValue = ref('')
 // 防抖
 let searchDebounceTimerId = -1
 // 搜索结果
 const searchArtifactResult = ref<SearchResult>()
-
+// 搜索的页码数
+const searchPageNo = ref(1)
+// 是否存在数据（还没开始搜索）
+const isStartedSearch = ref(false)
 // 数据是否为空
 const isResultEmpty = computed(() => {
     return searchArtifactResult.value === undefined || searchArtifactResult.value!.data.length === 0
 })
 
 // 搜索依赖
-const searchDependencies = () => {
+function searchDependencies() {
+    // 当搜索的值相同时，取消
+    if (finalSearchValue.value === searchValue.value) {
+        return
+    }
     // 防抖操作
     if (searchDebounceTimerId != -1) {
         clearTimeout(searchDebounceTimerId)
     }
     searchDebounceTimerId = setTimeout(() => {
         loading.value = true
+        isStartedSearch.value = true
+        // 更新该次搜索的值
+        finalSearchValue.value = searchValue.value
+        // 重置页码数为1
+        searchPageNo.value = 1
         if (searchValue.value) {
-            fetchMavenSearchWebSite(searchValue.value).then(res => {
-                console.log(res)
-                searchArtifactResult.value = res
-            })
-                .catch(err => {
+            fetchMavenSearchWebSite(searchValue.value, searchPageNo.value)
+                .then((res) => {
+                    console.log(res)
+                    searchArtifactResult.value = res
+                })
+                .catch((err) => {
                     console.log('searchDependencies', err)
                     ElNotification({
                         title: '网络错误',
                         message: '请重试',
                         type: 'error',
                     })
-                }).finally(() => {
-                loading.value = false
-            })
+                })
+                .finally(() => {
+                    loading.value = false
+                })
         } else {
             ElNotification({
                 title: 'Warning',
@@ -55,90 +72,196 @@ const searchDependencies = () => {
     }, 300)
 }
 
+// =========================== 结果列表加载更多 ========================================
+
+// 是否正在加载更多
+const loadingMore = ref(false)
+
+// 是否存在更多未加载的数据
+const hasMoreResult = computed<boolean>(() => {
+    // 存在剩余未加载数据
+    if (searchArtifactResult.value) {
+        return searchArtifactResult.value.data.length < searchArtifactResult.value.total
+    }
+    return false
+})
+
+// 是否允许加载更多内容
+const loadingMoreEnable = computed<boolean>(() => {
+    // 不在加载中 && 存在未加载的数据
+    return !loadingMore.value && hasMoreResult.value
+})
+
+// 无限加载的加载更多
+function loadingMoreResult() {
+    if (!searchArtifactResult.value) {
+        throw new Error('非法行为：还没搜索就开始加载其他数据')
+    }
+    if (loadingMore.value) {
+        return
+    }
+    loadingMore.value = true
+    fetchMavenSearchWebSite(finalSearchValue.value, searchPageNo.value + 1)
+        .then((res) => {
+            // 获取到数据后才更新页码数
+            searchPageNo.value += 1
+            const result = _.cloneDeep(searchArtifactResult.value)!
+            result.pageNo = searchPageNo.value
+            result.data.push(...res.data)
+            searchArtifactResult.value = result
+        })
+        .catch((err) => {
+            console.log('loadingMore Error', err)
+            ElMessage({
+                message: '加载失败',
+                type: 'error',
+            })
+        })
+        .finally(() => {
+            loadingMore.value = false
+        })
+}
+
+// ================ 路由跳转 =================
+// 跳转到对应的详细页面
 function navigateToArtifactView(groupId: string, artifactName: string) {
     router.push({
         path: `artifact/${groupId}/${artifactName}`,
     })
 }
-
 </script>
 
 <template>
-    <div>
-        <div class="main-content">
-            <div class="search-box">
-                <el-input v-model="searchValue"
-                          style="width: 240px"
-                          size="large"
-                          placeholder="请输入查找内容"
-                          :prefix-icon="Search"
-                          @keyup.enter="searchDependencies" />
-            </div>
-            <div class="search-result">
-                <!-- 无数据提示 -->
-                <el-empty v-if="isResultEmpty && !loading"
-                          description="暂无数据" />
-                <!-- 加载时显示 -->
-                <div v-if="loading">
-                    <el-skeleton :rows="1"
-                                 v-for="i in 10"
-                                 :key="i"
-                                 style="margin: 20px 20px" />
+    <el-container class="container">
+        <el-header :class="{ 'search-box': true, 'has-result': isStartedSearch }">
+            <el-space direction="vertical" size="large">
+                <el-space>
+                    <el-text size="large">搜索Maven Repository 依赖：</el-text>
+                    <el-input
+                        v-model="searchValue"
+                        style="width: 240px"
+                        size="large"
+                        placeholder="请输入查找内容"
+                        :prefix-icon="Search"
+                        @keyup.enter="searchDependencies"
+                    >
+                    </el-input>
+                    <el-button type="primary" @click="searchDependencies" :disabled="loading"
+                        >搜索
+                    </el-button>
+                </el-space>
+                <el-text type="info" v-if="!isStartedSearch">
+                    本插件基于<a href="https://mvnrepository.com/">Maven Repository</a>网页获取数据
+                </el-text>
+            </el-space>
+        </el-header>
+        <el-main class="main-container" v-if="isStartedSearch">
+            <!-- 无数据提示 -->
+            <el-empty v-if="isResultEmpty && !loading" description="暂无数据" class="result" />
+            <!-- 加载时显示 -->
+            <el-space v-if="loading" class="result" direction="vertical">
+                <div style="width: 100%">
+                    <el-skeleton :rows="5" animated style="width: 100%" />
+                    <el-text type="info">
+                        本插件基于<a href="https://mvnrepository.com/">Maven Repository</a
+                        >网页获取数据，等待时间可能较长，请稍等
+                    </el-text>
                 </div>
-                <!-- 展示结果 -->
-                <template v-if="!isResultEmpty && !loading">
-                    <MavenArtifactItem
-                        v-for="item in searchArtifactResult!.data"
-                        :key="item.index"
-                        :data="item"
-                        class="item"
-                        @item-click="navigateToArtifactView"
-                    />
-                </template>
+            </el-space>
+            <!-- 搜索结果 -->
 
-            </div>
-        </div>
-    </div>
+            <el-scrollbar v-if="!isResultEmpty && !loading" class="result">
+                <MavenArtifactItem
+                    v-infinite-scroll="loadingMoreResult"
+                    :infinite-scroll-distance="50"
+                    :infinite-scroll-disabled="!loadingMoreEnable"
+                    v-for="item in searchArtifactResult!.data"
+                    :key="item.index"
+                    :data="item"
+                    class="item"
+                    @item-click="navigateToArtifactView"
+                />
+
+                <div class="loading-tips" v-if="loadingMore">
+                    <el-space direction="horizontal" size="large">
+                        <div class="spinner"></div>
+                        <div>加载中...请稍等</div>
+                    </el-space>
+                </div>
+                <div v-if="!hasMoreResult" class="loading-tips">没有更多数据</div>
+            </el-scrollbar>
+        </el-main>
+    </el-container>
 </template>
 
-<style scoped lang="css">
-/* 通过fixed定位固定搜索框 */
+<style scoped lang="less">
+/* 整体的大小，并居中 */
+.container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    width: 100%;
+    margin: 0 auto;
+}
+
+/* 普通情况下居中 */
 .search-box {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 1000;
-    /* 设置z-index以确保搜索框在最上层 */
     display: flex;
     justify-content: center;
-    /* 水平居中 */
-    padding: 10px;
-    /* 根据需要调整内外边距 */
+    width: 100%;
+    padding: 1rem;
+    transition: all 1s ease;
+}
+
+/* 有结果后使其位于顶部 */
+.has-result {
+    position: sticky;
+    top: 0;
+    z-index: 10;
     background-color: #fff;
     /* 背景颜色，确保与下方内容区分 */
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    /* 可选，增加阴影效果 */
+    height: auto;
 }
 
-.main-content {
+/* 包含搜索内容的容器 */
+.main-container {
+    width: 100%;
     display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-    /* 使主要内容区域至少填充整个视口高度 */
-    padding-top: 60px;
-    /* 保证搜索框下方有足够的空间 */
-    justify-content: center;
-    /* 垂直居中对齐子元素 */
-    align-items: center;
-    width: 100vw;
-}
 
-.search-result {
-    width: 50%;
-}
+    .result {
+        width: 100%;
+    }
 
-.item {
-    margin: 8px 8px;
+    .el-card {
+        margin: 12px 0;
+        width: calc(100% - 10px);
+    }
+
+    /* 加载中的转圈圈 */
+
+    .spinner {
+        border: 2px solid rgba(0, 0, 0, 0.1);
+        width: 25px;
+        height: 25px;
+        border-radius: 50%;
+        border-left-color: var(--el-color-primary); /* 转圈颜色 */
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    .loading-tips {
+        margin: 20px 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
 }
 </style>
