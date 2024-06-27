@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useGlobalConfigStore } from '@/pinia/config'
-// import { onPluginEnter, onPluginOut, UtoolsDB } from '@/api/utools'
+import { onPluginEnter, onPluginOut, UtoolsDB } from '@/api/utools'
 import { CollectionTag, Search } from '@element-plus/icons-vue'
 import { useRouter } from 'vue-router'
 import { onMounted } from 'vue'
@@ -15,22 +15,22 @@ onMounted(() => {
     })
 })
 
-// onPluginEnter((config) => {
-//     globalConfigStore.load(UtoolsDB)
-//     if (config.code === "search" && config.payload) {
-//         // 此时 payload 为打开插件时传入的值
-//         globalConfigStore.setSearchValue(config.payload)
-//     }
-//     if (config.code == "collect") {
-//         router.replace({
-//             name: 'Collect'
-//         })
-//     }
-// })
-//
-// onPluginOut(() => {
-//     globalConfigStore.save(UtoolsDB)
-// })
+onPluginEnter((config) => {
+    globalConfigStore.load(UtoolsDB)
+    if (config.code === "search" && config.payload) {
+        // 此时 payload 为打开插件时传入的值
+        globalConfigStore.setSearchValue(config.payload)
+    }
+    if (config.code == "collect") {
+        router.replace({
+            name: 'Collect'
+        })
+    }
+})
+
+onPluginOut(() => {
+    globalConfigStore.save(UtoolsDB)
+})
 
 </script>
 

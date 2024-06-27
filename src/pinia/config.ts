@@ -60,11 +60,13 @@ export const useGlobalConfigStore = defineStore('config', () => {
 
     const config = ref<Config>()
 
-    /** 搜索值 */
+    /** 插件搜索值 */
     const searchValue = ref('')
 
 
     // ============= getters ============
+
+
 
     // ============= actions ============
     /** 存储到 db 中 */

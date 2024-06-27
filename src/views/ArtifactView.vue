@@ -98,16 +98,6 @@ function handleSelectVersionItem(index: number) {
 }
 
 
-// ===================  收藏 ==========================
-
-function collectNoVersionArtifact() {
-    ElNotification({
-        message: '开发中...',
-        type: 'info',
-    })
-}
-
-
 
 
 </script>
@@ -127,18 +117,6 @@ function collectNoVersionArtifact() {
                         </el-tag>
                     </el-space>
                 </template>
-                <template #extra>
-                    <!-- 加入收藏   -->
-                    <el-button type="primary" size="default" @click="collectNoVersionArtifact">
-                        <template #icon>
-                            <el-icon>
-                                <Star />
-                            </el-icon>
-                        </template>
-                        收藏
-                    </el-button>
-                </template>
-
             </el-page-header>
         </el-header>
         <el-container class="inner-container">
