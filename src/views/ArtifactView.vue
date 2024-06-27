@@ -6,9 +6,11 @@ import { ElNotification } from 'element-plus'
 import type { ArtifactInfo } from '@/api/type'
 import MavenArtifactUsage from '@/components/MavenArtifactUsage.vue'
 import { Star } from '@element-plus/icons-vue'
+import { useGlobalConfigStore } from '@/pinia/config'
 
 const route = useRoute()
 const router = useRouter()
+const globalConfigStore = useGlobalConfigStore()
 
 const loading = ref(false)
 const artifactInfo = ref<ArtifactInfo>()
@@ -50,6 +52,7 @@ onMounted(() => {
     artifactName.value = route.params['artifactName'] as string
     fetchArtifactInfo(groupId.value, artifactName.value)
 })
+
 // 可能被缓存，不会加载 onMounted 因此需要在 activated时加载
 onActivated(() => {
     const routeGroupId = route.params['groupId'] as string
@@ -58,6 +61,8 @@ onActivated(() => {
     if (routeGroupId != groupId.value || routeArtifactName != artifactName.value) {
         groupId.value = routeGroupId
         artifactName.value = routeArtifactName
+        selectedVersionItemIndex.value = -1 // 清空选中
+        selectedItem.value = undefined // 清空用法
         fetchArtifactInfo(groupId.value, artifactName.value)
     }
 })
@@ -91,44 +96,49 @@ function handleSelectVersionItem(index: number) {
     }
     console.log('clicked', index)
 }
+
+
+// ===================  收藏 ==========================
+
+function collectNoVersionArtifact() {
+    ElNotification({
+        message: '开发中...',
+        type: 'info',
+    })
+}
+
+
+
+
 </script>
 
 <template>
     <el-container v-loading="loading" direction="vertical" class="main-container">
         <el-header>
-            <!--  页头，显示面板屑和相关信息  -->
-            <el-page-header @back="onBack">
-                <template #breadcrumb>
-                    <el-breadcrumb separator="/">
-                        <el-breadcrumb-item :to="{ name: 'Search' }" class="font-large">
-                            搜索
-                        </el-breadcrumb-item>
-                        <el-breadcrumb-item class="font-large" :to="{}" style="font-weight: bolder">
-                            {{ artifactCompleteName }}
-                        </el-breadcrumb-item>
-                    </el-breadcrumb>
-                </template>
+            <!--  页头和相关信息  -->
+            <el-page-header @back="onBack" style="margin-top: 8px">
                 <template #content>
                     <el-space>
+                        <el-text size="large" class="font-large">
+                            {{ artifactCompleteName }}
+                        </el-text>
                         <el-tag v-if="artifactInfo?.categories" size="large" type="success"
                             >{{ artifactInfo?.categories }}
                         </el-tag>
-                        <el-text size="large" truncated line-clamp="1" style="align-items: center">
-                            {{ artifactInfo?.description }}
-                        </el-text>
                     </el-space>
                 </template>
                 <template #extra>
                     <!-- 加入收藏   -->
-                    <el-button type="primary" size="large">
+                    <el-button type="primary" size="default" @click="collectNoVersionArtifact">
                         <template #icon>
                             <el-icon>
                                 <Star />
                             </el-icon>
                         </template>
-                        收藏该 Artifact
+                        收藏
                     </el-button>
                 </template>
+
             </el-page-header>
         </el-header>
         <el-container class="inner-container">
@@ -186,6 +196,10 @@ function handleSelectVersionItem(index: number) {
 
 .main-container {
     height: 100%;
+}
+
+.el-header {
+    height: auto;
 }
 
 /*侧边栏*/

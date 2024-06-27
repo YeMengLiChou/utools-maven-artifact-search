@@ -2,8 +2,8 @@
 import { onMounted, ref, watch } from 'vue'
 import { fetchMavenArtifactUsage } from '@/api/core'
 import type { ArtifactUsage } from '@/api/type'
-import { ElMessage } from 'element-plus'
-import { Star } from '@element-plus/icons-vue'
+import { ElMessage, ElNotification } from 'element-plus'
+import { Position, Star } from '@element-plus/icons-vue'
 
 // 定义属性
 const props = withDefaults(
@@ -125,17 +125,21 @@ function handleTextClick(lines: Array<string>) {
             })
         })
 }
+
+
+function collectVersionArtifact() {
+    ElNotification({
+        message: '开发中...',
+        type: 'info',
+    })
+}
+
 </script>
 
 <template>
     <el-container>
         <el-main>
-            <el-popover
-                placement="top"
-                trigger="hover"
-                width="300px"
-                :disabled="loading"
-            >
+            <el-popover placement="top" trigger="hover" width="300px" :disabled="loading">
                 <template #reference>
                     <el-skeleton v-if="loading" :rows="5" animated />
                     <el-tabs
@@ -168,7 +172,7 @@ function handleTextClick(lines: Array<string>) {
                 <div>
                     <el-space direction="vertical" style="align-items: center; display: flex">
                         <el-text>点击内容即可复制~</el-text>
-                        <el-button type="primary">
+                        <el-button type="primary" @click="collectVersionArtifact">
                             <template #icon>
                                 <el-icon>
                                     <Star />
@@ -183,8 +187,13 @@ function handleTextClick(lines: Array<string>) {
                 <el-space direction="vertical" size="large">
                     <el-text type="info"
                         >该内容基于
-                        <a :href="currentArtifactMavenLink" target="_blank">Maven Repository</a>
-                        生成
+                        <el-link type="primary" :href="currentArtifactMavenLink" target="_blank"
+                            >Maven Repository
+                            <el-icon>
+                                <Position />
+                            </el-icon>
+                        </el-link>
+                        > 生成
                     </el-text>
                     <el-text v-if="loading" type="info">生成时间可能有点长~请稍等~</el-text>
                 </el-space>

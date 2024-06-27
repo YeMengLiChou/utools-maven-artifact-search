@@ -75,11 +75,10 @@ export function parseMavenSearchWebContent(html: string): SearchResult {
     const resultSize = extractResultSize(h2?.textContent ?? '')
     const items: Array<SearchResultItem> = []
     doc.querySelectorAll('body > div.page > main > div.content > div.im')
-        .forEach((element, key, parent) => {
+        .forEach((element) => {
             const info = extractArtifactInfo(element)
             if (info != null) {
                 items.push(info)
-                console.log(info)
             }
         })
 

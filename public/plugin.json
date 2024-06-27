@@ -1,12 +1,26 @@
 {
     "main": "index.html",
     "logo": "icon.png",
-    "preload": "./preload.js",
     "features": [
         {
-            "code": "main",
-            "explain": "依赖查找",
-            "cmds": ["查找依赖"]
+            "code": "open",
+            "explain": "进入插件查看信息",
+            "cmds": ["依赖"]
+        },
+        {
+            "code": "search",
+            "explain": "查找MavenRepository的依赖包",
+            "cmds": [{
+                "type": "over",
+                "label": "查找",
+                "minLength": 1,
+                "maxLength": 50
+            }]
+        },
+        {
+            "code": "collect",
+            "explain": "查看收藏的依赖",
+            "cmds": ["收藏"]
         }
     ],
     "development": {

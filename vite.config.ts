@@ -12,17 +12,7 @@ const pathSrc = path.resolve(__dirname, 'src')
 
 export default defineConfig({
     base: './',
-    server: {
-        port: 3000,
-        proxy: {
-            '/maven': {
-                target: 'https://mvnrepository.com/',
-                changeOrigin: true,
-                rewrite: (path) => path.replace(/^\/maven\//, ''),
-            },
-        },
-        cors: true,
-    },
+    server: {},
 
     plugins: [
         vue(),

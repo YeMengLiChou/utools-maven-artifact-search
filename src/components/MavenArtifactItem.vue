@@ -34,24 +34,28 @@ const handleClickItem = () => {
         <template #header>
             <div class="header">
                 <el-space size="large">
-                    <el-text size="large" type="success" style="font-size: larger">{{
-                        props.data.index
-                    }}</el-text>
-                    <el-text size="large">{{ props.data.name }}</el-text>
-                    <el-tag size="large" style="font-size: large">{{ completeName }}</el-tag>
+                    <el-text size="large" type="success" style="font-size: larger"
+                        >{{ props.data.index }}
+                    </el-text>
+                    <el-text size="large" style="font-weight: bold">{{ props.data.name }}</el-text>
                 </el-space>
                 <el-text type="info">{{ props.data.lastReleaseTime }}</el-text>
             </div>
         </template>
         <template #default>
-            <el-text
-                size="large"
-                :line-clamp="2"
-                :truncated="true"
-                style="width: 100%; height: auto; white-space: normal"
-            >
-                {{ props.data.description }}
-            </el-text>
+            <el-space direction="vertical" alignment="flex-start">
+                <el-tag size="large" style="font-size: large;"
+                    >{{ completeName }}
+                </el-tag>
+                <el-text
+                    size="large"
+                    :line-clamp="2"
+                    :truncated="true"
+                    style="width: 100%; height: auto; white-space: normal"
+                >
+                    {{ props.data.description }}
+                </el-text>
+            </el-space>
         </template>
     </el-card>
 </template>

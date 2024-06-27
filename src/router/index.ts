@@ -10,12 +10,20 @@ const router = createRouter({
             component: SearchView,
             meta: {
                 keepAlive: true,
-            }
+            },
         },
         {
             path: '/artifact/:groupId/:artifactName',
             name: 'Artifact',
-            component: () => import('../views/ArtifactView.vue'),
+            component: () => import('@/views/ArtifactView.vue'),
+        },
+        {
+            path: '/collect',
+            name: 'Collect',
+            component: () => import('@/views/CollectionView.vue'),
+            meta: {
+                keepAlive: true,
+            },
         },
     ],
 })

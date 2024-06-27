@@ -1,39 +1,18 @@
-# AndroidDependencies
+# Utools-Maven-Artifact-Search
+基于 [Maven Repository](https://mvnrepository.com/) 网站所开发的插件：
+- 搜索 Maven Repository 的依赖，查看其对应的版本以及用法
+- 收藏依赖（开发中）
 
-This template should help get you started developing with Vue 3 in Vite.
+> 因为搜索结果依赖于网站的响应，所以等待时间取决于网速，有概率会遇到网络问题（Maven网站返回403）
+---
 
-## Recommended IDE Setup
 
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+# 打包安装
 
-## Type Support for `.vue` Imports in TS
-
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) to make the TypeScript language service aware of `.vue` types.
-
-## Customize configuration
-
-See [Vite Configuration Reference](https://vitejs.dev/config/).
-
-## Project Setup
-
-```sh
-npm install
-```
-
-### Compile and Hot-Reload for Development
-
-```sh
-npm run dev
-```
-
-### Type-Check, Compile and Minify for Production
-
-```sh
-npm run build
-```
-
-### Lint with [ESLint](https://eslint.org/)
-
-```sh
-npm run lint
-```
+1. 先进行打包，打包生成的内容会在 `dist` 文件夹中
+    ```sh
+    npm install
+    npm run build
+    ```
+2. 使用 Utools 开发者工具定位到 `dist/plugin.json` 文件，然后打包为 `xxx.upx` 文件，
+3. 最后拖进 Utools 进行安装即可

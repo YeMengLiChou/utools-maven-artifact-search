@@ -1,14 +1,18 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import { Search } from '@element-plus/icons-vue'
+import { computed, ref, watch } from 'vue'
+import { Position, Search } from '@element-plus/icons-vue'
 import { ElMessage, ElNotification } from 'element-plus'
 import { fetchMavenSearchWebSite } from '@/api/core'
 import MavenArtifactItem from '@/components/MavenArtifactItem.vue'
 import type { SearchResult } from '@/api/type'
-import { useRouter } from 'vue-router'
+import {  useRouter } from 'vue-router'
 import _ from 'lodash'
+import { useGlobalConfigStore } from '@/pinia/config'
 
 const router = useRouter()
+
+const globalConfigStore = useGlobalConfigStore()
+
 const loading = ref(false)
 
 // 搜索栏的值（可变）
@@ -27,6 +31,18 @@ const isStartedSearch = ref(false)
 const isResultEmpty = computed(() => {
     return searchArtifactResult.value === undefined || searchArtifactResult.value!.data.length === 0
 })
+
+// 从插件带进来的payload，直接搜索
+watch(
+    () => globalConfigStore.searchValue,
+    () => {
+        if (globalConfigStore.searchValue) {
+            searchValue.value = globalConfigStore.searchValue
+            searchDependencies()
+        }
+    },
+    { immediate: true },
+)
 
 // 搜索依赖
 function searchDependencies() {
@@ -53,6 +69,7 @@ function searchDependencies() {
                 })
                 .catch((err) => {
                     console.log('searchDependencies', err)
+                    finalSearchValue.value = '' // 确保能重新搜索
                     ElNotification({
                         title: '网络错误',
                         message: '请重试',
@@ -126,7 +143,7 @@ function loadingMoreResult() {
 // 跳转到对应的详细页面
 function navigateToArtifactView(groupId: string, artifactName: string) {
     router.push({
-        path: `artifact/${groupId}/${artifactName}`,
+        path: `/artifact/${groupId}/${artifactName}`,
     })
 }
 </script>
@@ -151,7 +168,14 @@ function navigateToArtifactView(groupId: string, artifactName: string) {
                     </el-button>
                 </el-space>
                 <el-text type="info" v-if="!isStartedSearch">
-                    本插件基于<a href="https://mvnrepository.com/">Maven Repository</a>网页获取数据
+                    本插件基于
+                    <el-link href="https://mvnrepository.com/" type="primary"
+                        >Maven Repository
+                        <el-icon>
+                            <Position />
+                        </el-icon>
+                    </el-link>
+                    网页获取数据
                 </el-text>
             </el-space>
         </el-header>
@@ -163,8 +187,14 @@ function navigateToArtifactView(groupId: string, artifactName: string) {
                 <div style="width: 100%">
                     <el-skeleton :rows="5" animated style="width: 100%" />
                     <el-text type="info">
-                        本插件基于<a href="https://mvnrepository.com/">Maven Repository</a
-                        >网页获取数据，等待时间可能较长，请稍等
+                        本插件基于
+                        <el-link href="https://mvnrepository.com/" type="primary"
+                            >Maven Repository
+                            <el-icon>
+                                <Position />
+                            </el-icon>
+                        </el-link>
+                        网页获取数据，等待时间可能较长，请稍等
                     </el-text>
                 </div>
             </el-space>

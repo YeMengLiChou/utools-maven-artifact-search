@@ -4,7 +4,7 @@ import {
     parseMavenArtifactWebContent,
     parseMavenSearchWebContent,
 } from '@/api/parse'
-import axios, { type AxiosInstance } from 'axios'
+import axios from 'axios'
 import type { ArtifactInfo, ArtifactUsage, SearchResult } from '@/api/type'
 
 /**
@@ -20,7 +20,7 @@ axios.defaults.headers.common['Accept'] = '*/*'
 axios.defaults.headers.common['Content-Encoding'] = 'gzip, deflate, br, zstd'
 
 const Axios = axios.create({
-    baseURL: '',
+    baseURL: 'https://mvnrepository.com',
     timeout: 50000,
 })
 
@@ -29,7 +29,7 @@ export function fetchMavenSearchWebSite(
     pageNo: number = 1,
 ): Promise<SearchResult> {
     return new Promise((resolve, reject) => {
-        Axios.get('/maven/search', {
+        Axios.get('/search', {
             params: {
                 q: searchValue, // 搜索内容
                 p: pageNo, // 页码
@@ -54,7 +54,7 @@ export function fetchMavenArtifactInfo(
     artifactName: string,
 ): Promise<ArtifactInfo> {
     return new Promise((resolve, reject) => {
-        Axios.get(`/maven/artifact/${groupId}/${artifactName}`, {})
+        Axios.get(`/artifact/${groupId}/${artifactName}`, {})
             .then((res) => {
                 if (res.status == 200) {
                     resolve(parseMavenArtifactWebContent(res.data))
@@ -68,7 +68,7 @@ export function fetchMavenArtifactInfo(
 
 export function fetchMavenArtifactUsage(groupId: string, artifactName: string, version: string): Promise<ArtifactUsage> {
     return new Promise((resolve, reject) => {
-        Axios.get(`/maven/artifact/${groupId}/${artifactName}/${version}`, {})
+        Axios.get(`/artifact/${groupId}/${artifactName}/${version}`, {})
             .then((res) => {
                 if (res.status == 200) {
                     resolve(parseMavenArtifactUsageWebContent(res.data))
